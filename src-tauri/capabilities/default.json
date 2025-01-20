@@ -7,9 +7,8 @@
   ],
   "permissions": [
     "core:default",
-    "opener:default",
-    "window-state:allow-restore-window-state",
-    "window-state:allow-save-window-state"
+    "core:app:default",
+    "opener:default"
   ],
   "capabilities": []
 }

@@ -1,16 +1,20 @@
 import "./App.css";
 import {Button} from "@/components/ui/button.tsx";
-import {useEffect} from "react";
+import {Timer} from "@/view/Timer.tsx";
 
 function App() {
 
-  useEffect(() => {
-    // 启动时默认将窗口调整到页面中心
-    window.moveTo((window.screen.width - window.outerWidth) / 2, (window.screen.height - window.outerHeight) / 2);
-  }, []);
+  const handleTimerComplete = () => {
+    console.log("Timer completed!");
+    // 在这里添加倒计时结束时要执行的操作
+    alert("Countdown finished!");
+  };
 
   return (
-    <Button variant="default">Test</Button>
+    <div>
+      <Button variant="default">Test</Button>
+      <Timer onComplete={handleTimerComplete}/>
+    </div>
   );
 }
 

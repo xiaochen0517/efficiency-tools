@@ -9,6 +9,9 @@
     "main"
   ],
   "permissions": [
-    "window-state:default"
+    "window-state:default",
+    "core:event:default",
+    "core:event:allow-listen",
+    "core:app:default"
   ]
 }

@@ -4,7 +4,7 @@ use tauri::{Emitter, State};
 use tokio::time;
 
 /// 倒计时状态结构体
-pub struct CountdownState(pub Mutex<i32>);
+pub struct CountdownState(pub Mutex<i32>, pub Mutex<bool>);
 
 /// 开始倒计时的命令处理函数
 ///
@@ -23,8 +23,20 @@ pub async fn start_countdown(
 ) -> Result<(), String> {
     let mut remaining = seconds;
 
+    println!(
+        "Starting countdown for {} seconds",
+        *state.0.lock().unwrap()
+    );
+    println!("Countdown is already running: {}", *state.1.lock().unwrap());
+
+    // 如果已经有倒计时在进行中，则直接返回错误信息
+    if *state.1.lock().unwrap() {
+        return Err("Countdown is already running".to_string());
+    }
+
     // 更新初始状态
     *state.0.lock().unwrap() = remaining;
+    *state.1.lock().unwrap() = true;
 
     // 开始倒计时循环
     while remaining > 0 {
@@ -46,6 +58,8 @@ pub async fn start_countdown(
         .emit("countdown-complete", ())
         .map_err(|e| e.to_string())?;
 
+    // 更新状态
+    *state.1.lock().unwrap() = false;
     Ok(())
 }
 
@@ -53,4 +67,10 @@ pub async fn start_countdown(
 #[tauri::command]
 pub fn get_remaining_time(state: State<'_, CountdownState>) -> i32 {
     *state.0.lock().unwrap()
+}
+
+/// 获取当前倒计时状态
+#[tauri::command]
+pub fn get_countdown_state(state: State<'_, CountdownState>) -> bool {
+    *state.1.lock().unwrap()
 }

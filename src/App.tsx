@@ -1,8 +1,6 @@
 import "./App.css";
-import {Button} from "@/components/ui/button.tsx";
 import {Timer} from "@/view/Timer.tsx";
 import {useEffect} from "react";
-import {TimerIcon} from "lucide-react";
 
 function App() {
 
@@ -28,10 +26,7 @@ function App() {
   };
 
   return (
-    <div className="w-screen h-screen overflow-y-auto flex flex-col gap-2 items-center dark:bg-neutral-950 p-2">
-      <Button size="icon" variant="default">
-        <TimerIcon/>
-      </Button>
+    <div className="w-screen h-screen flex flex-col items-center justify-center overflow-y-auto dark:bg-neutral-950 p-2">
       <Timer onComplete={handleTimerComplete}/>
     </div>
   );

@@ -1,6 +1,7 @@
 use std::sync::Mutex;
 use std::time::Duration;
-use tauri::{Emitter, State};
+use tauri::{AppHandle, Emitter, State};
+use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 use tokio::time;
 
 /// 倒计时状态结构体
@@ -20,14 +21,15 @@ pub async fn start_countdown(
     seconds: i32,
     state: State<'_, CountdownState>,
     window: tauri::Window,
+    app_handle: AppHandle,
 ) -> Result<(), String> {
     let mut remaining = seconds;
 
-    println!(
+    log::debug!(
         "Starting countdown for {} seconds",
         *state.0.lock().unwrap()
     );
-    println!("Countdown is already running: {}", *state.1.lock().unwrap());
+    log::debug!("Countdown is already running: {}", *state.1.lock().unwrap());
 
     // 如果已经有倒计时在进行中，则直接返回错误信息
     if *state.1.lock().unwrap() {
@@ -52,6 +54,13 @@ pub async fn start_countdown(
             .emit("countdown-update", remaining)
             .map_err(|e| e.to_string())?;
     }
+
+    app_handle
+        .dialog()
+        .message("计时结束")
+        .kind(MessageDialogKind::Info)
+        .title("提示")
+        .show(|_| {});
 
     // 发送倒计时完成事件
     window

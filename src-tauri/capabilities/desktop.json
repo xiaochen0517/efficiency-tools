@@ -12,6 +12,7 @@
     "window-state:default",
     "core:event:default",
     "core:event:allow-listen",
-    "core:app:default"
+    "core:app:default",
+    "dialog:default"
   ]
 }

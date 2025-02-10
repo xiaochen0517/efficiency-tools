@@ -1,34 +1,43 @@
-mod countdown;
+mod pomodoro;
 mod utils;
 
-use crate::countdown::get_countdown_state;
-use countdown::{get_remaining_time, start_countdown, CountdownState};
+use crate::pomodoro::countdown::{
+    get_countdown_mode, get_countdown_state, get_remaining_time, set_countdown_mode,
+    start_countdown, CountdownMode, PomodoroState,
+};
 use std::error::Error;
+use std::sync::Mutex;
 use std::time::Duration;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{TrayIconBuilder, TrayIconEvent};
 use tauri::{App, AppHandle, Manager, WindowEvent};
 
+use crate::pomodoro::time::PomodoroTimeMode;
 use utils::time_util;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_log::Builder::new().build())
         // 注册插件
+        .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         // 注册倒计时状态
-        .manage(CountdownState(
-            std::sync::Mutex::new(0),
-            std::sync::Mutex::new(false),
-        ))
+        .manage(PomodoroState {
+            remaining_time: Mutex::new(0),
+            started: Mutex::new(false),
+            countdown_mode: Mutex::new(CountdownMode::Work),
+            rest_count: Mutex::new(0),
+            time_mode: Mutex::new(PomodoroTimeMode::Medium),
+        })
         // 注册命令处理函数
         .invoke_handler(tauri::generate_handler![
             start_countdown,
             get_remaining_time,
-            get_countdown_state
+            get_countdown_state,
+            set_countdown_mode,
+            get_countdown_mode
         ])
         .setup(|app| {
             create_tray(app)?;
@@ -59,8 +68,8 @@ fn update_tray_tooltip(app: &mut App) {
     let app_handle = app.handle().clone();
     std::thread::spawn(move || loop {
         std::thread::sleep(Duration::from_secs(1));
-        let state = app_handle.state::<CountdownState>();
-        let total_secs = state.0.lock().unwrap().clone();
+        let countdown_state = app_handle.state::<PomodoroState>();
+        let total_secs = countdown_state.remaining_time.lock().unwrap().clone();
         let hms_data = time_util::sec_to_hms(total_secs);
         let tooltip = format!(
             "当前剩余 {}小时{}分钟{}秒",

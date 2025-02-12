@@ -2,21 +2,22 @@ mod pomodoro;
 mod utils;
 
 use crate::pomodoro::countdown::{
-    get_countdown_mode, get_countdown_state, get_remaining_time, set_countdown_mode,
-    start_countdown, CountdownMode, PomodoroState,
+    get_pomodoro_state, set_pomodoro_time_mode, CountdownMode, PomodoroState,
 };
+use crate::pomodoro::time::PomodoroTimeMode;
+use crate::pomodoro::{start_pomodoro, stop_pomodoro};
 use std::error::Error;
+use std::sync::atomic::AtomicBool;
 use std::sync::Mutex;
 use std::time::Duration;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{TrayIconBuilder, TrayIconEvent};
 use tauri::{App, AppHandle, Manager, WindowEvent};
-
-use crate::pomodoro::time::PomodoroTimeMode;
 use utils::time_util;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let default_time_mode = PomodoroTimeMode::Medium;
     tauri::Builder::default()
         // 注册插件
         .plugin(tauri_plugin_log::Builder::new().build())
@@ -25,19 +26,20 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         // 注册倒计时状态
         .manage(PomodoroState {
-            remaining_time: Mutex::new(0),
-            started: Mutex::new(false),
+            remaining_time: Mutex::new(default_time_mode.get_config().work_time),
             countdown_mode: Mutex::new(CountdownMode::Work),
             rest_count: Mutex::new(0),
-            time_mode: Mutex::new(PomodoroTimeMode::Medium),
+            time_mode: Mutex::new(default_time_mode),
+            is_running: AtomicBool::new(false),
+            stop_signal: Mutex::new(None),
+            should_stop: AtomicBool::new(false),
         })
         // 注册命令处理函数
         .invoke_handler(tauri::generate_handler![
-            start_countdown,
-            get_remaining_time,
-            get_countdown_state,
-            set_countdown_mode,
-            get_countdown_mode
+            start_pomodoro,
+            stop_pomodoro,
+            get_pomodoro_state,
+            set_pomodoro_time_mode,
         ])
         .setup(|app| {
             create_tray(app)?;

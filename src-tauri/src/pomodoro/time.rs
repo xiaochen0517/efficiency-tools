@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 pub enum PomodoroTimeMode {
+    Test,
     Short,
     Medium,
     Long,
@@ -16,6 +17,11 @@ pub struct PomodoroTime {
 impl PomodoroTimeMode {
     pub fn get_config(&self) -> PomodoroTime {
         match self {
+            Self::Test => PomodoroTime {
+                work_time: 5,
+                short_rest_time: 2,
+                long_rest_time: 3,
+            },
             Self::Short => PomodoroTime {
                 work_time: 25 * 60,      // 25分钟
                 short_rest_time: 5 * 60, // 5分钟

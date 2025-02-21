@@ -1,5 +1,6 @@
 mod pomodoro;
 mod utils;
+mod config;
 
 use crate::pomodoro::countdown::{
     get_pomodoro_state, set_pomodoro_time_mode, CountdownMode, PomodoroState,
@@ -17,9 +18,15 @@ use utils::time_util;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let default_time_mode = PomodoroTimeMode::Medium;
+    let mut default_time_mode = PomodoroTimeMode::Medium;
+    #[cfg(debug_assertions)]
+    {
+        default_time_mode = PomodoroTimeMode::Test;
+    }
+
     tauri::Builder::default()
         // 注册插件
+        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_window_state::Builder::new().build())

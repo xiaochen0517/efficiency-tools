@@ -28,8 +28,8 @@ type WxPusherConfigType = {
 
 export default function SettingsButton({isRunning, onSave}: SettingsButtonProps) {
 
-  const [isDevMode, setIsDevMode] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isDevMode, setIsDevMode] = useState<boolean>(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [timeMode, setTimeMode] = useState<"Short" | "Medium" | "Long" | "Test">("Short");
   const [sptToken, setSptToken] = useState<string>("");
 
@@ -44,9 +44,9 @@ export default function SettingsButton({isRunning, onSave}: SettingsButtonProps)
             setTimeMode(config.time_mode);
           });
       });
-    invoke("is_dev_mode")
-      .then((isDevMode) => {
-        setIsDevMode(isDevMode);
+    invoke<boolean>("is_dev_mode")
+      .then((devMode) => {
+        setIsDevMode(devMode);
       });
   }, [isSettingsOpen]);
 

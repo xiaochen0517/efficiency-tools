@@ -111,14 +111,12 @@ fn countdown_complete(
 
 async fn send_wx_message(app_handle: AppHandle, countdown_mode: CountdownMode) {
     let wx_pusher_config = WxPusherConfig::get_config(&app_handle);
-    if wx_pusher_config.spt_token.is_none() {
+    let spt_token = wx_pusher_config.get_spt_token().unwrap_or(String::new());
+    if spt_token.is_empty() {
         log::warn!("wx pusher spt_token config is not set");
         return;
     }
-    log::debug!(
-        "wx pusher config spt_token: {:?}",
-        wx_pusher_config.spt_token
-    );
+    log::debug!("wx pusher config spt_token: {:?}", spt_token);
 
     let content = match countdown_mode {
         CountdownMode::Work => "工作时间结束，休息一下吧",
@@ -131,7 +129,7 @@ async fn send_wx_message(app_handle: AppHandle, countdown_mode: CountdownMode) {
           "content": content,
           "summary": content,
           "contentType": 1,
-          "spt": wx_pusher_config.spt_token
+          "spt": spt_token,
         }))
         .send()
         .await;

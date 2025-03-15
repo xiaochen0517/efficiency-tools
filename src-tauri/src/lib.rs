@@ -1,12 +1,14 @@
+mod config;
 mod pomodoro;
 mod utils;
-mod config;
 
+use crate::config::WxPusherConfig;
 use crate::pomodoro::countdown::{
     get_pomodoro_state, set_pomodoro_time_mode, CountdownMode, PomodoroState,
 };
 use crate::pomodoro::time::PomodoroTimeMode;
 use crate::pomodoro::{start_pomodoro, stop_pomodoro};
+use crate::utils::is_dev_mode;
 use std::error::Error;
 use std::sync::atomic::AtomicBool;
 use std::sync::Mutex;
@@ -47,11 +49,20 @@ pub fn run() {
             stop_pomodoro,
             get_pomodoro_state,
             set_pomodoro_time_mode,
+            is_dev_mode,
         ])
         .setup(|app| {
             create_tray(app)?;
 
             update_tray_tooltip(app);
+
+            let wx_pusher_config = WxPusherConfig::get_config(&app.handle());
+            log::debug!("wx_pusher_config: {:?}", wx_pusher_config);
+            set_pomodoro_time_mode(
+                wx_pusher_config.get_time_mode(),
+                app.state::<PomodoroState>(),
+            )
+            .unwrap();
 
             #[cfg(debug_assertions)] // 仅在开发模式下启用
             {

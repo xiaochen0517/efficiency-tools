@@ -22,14 +22,15 @@ interface SettingsButtonProps {
 }
 
 type WxPusherConfigType = {
+  time_mode: "Short" | "Medium" | "Long" | "Test";
   spt_token: string;
 }
 
 export default function SettingsButton({isRunning, onSave}: SettingsButtonProps) {
 
+  const [isDevMode, setIsDevMode] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [timeMode, setTimeMode] = useState<"Short" | "Medium" | "Long">("Short");
-
+  const [timeMode, setTimeMode] = useState<"Short" | "Medium" | "Long" | "Test">("Short");
   const [sptToken, setSptToken] = useState<string>("");
 
   useEffect(() => {
@@ -38,10 +39,16 @@ export default function SettingsButton({isRunning, onSave}: SettingsButtonProps)
         await store.get<WxPusherConfigType>("wxpusher_config")
           .then((config) => {
             if (!config) return;
+            console.log("config", config);
             setSptToken(config.spt_token);
+            setTimeMode(config.time_mode);
           });
       });
-  });
+    invoke("is_dev_mode")
+      .then((isDevMode) => {
+        setIsDevMode(isDevMode);
+      });
+  }, [isSettingsOpen]);
 
   const commitSettings = () => {
     console.log("commitSettings", timeMode);
@@ -52,7 +59,10 @@ export default function SettingsButton({isRunning, onSave}: SettingsButtonProps)
       });
     load("store.json", {autoSave: false})
       .then(async (store) => {
-        await store.set("wxpusher_config", {spt_token: sptToken});
+        await store.set("wxpusher_config", {
+          time_mode: timeMode,
+          spt_token: sptToken,
+        });
       });
   };
 
@@ -77,6 +87,10 @@ export default function SettingsButton({isRunning, onSave}: SettingsButtonProps)
             defaultValue={timeMode}
             onValueChange={(value) => setTimeMode(value as "Short" | "Medium" | "Long")}
           >
+            {isDevMode ? <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Test" id="option-test"/>
+              <Label htmlFor="option-test">测试时间；</Label>
+            </div> : null}
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="Short" id="option-short"/>
               <Label htmlFor="option-short">短 25分钟工作；&nbsp;&nbsp;5分钟短休息；15分钟长休息；</Label>
